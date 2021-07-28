@@ -9,5 +9,5 @@ func Test(t *testing.T) {
 	Println("Println")
 	Info("Info")
 	Warn("Warn")
-	_ = Err("Err")
+	Err("Err")
 }

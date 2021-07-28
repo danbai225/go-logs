@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -28,7 +29,6 @@ var warnLog = glg.FileWriter("logs/warn.log", 0777)
 var WRITE = byte(INFO | ERR)
 var StderrFile = false
 var stdErrFileHandler *os.File
-var Err = glg.Error
 
 func init() {
 	glg.Get().
@@ -48,6 +48,7 @@ func init() {
 	// SetLevelWriter(glg.INFO, customWriter).
 	// SetLevelWriter(glg.WARN, customWriter).
 	// SetLevelWriter(glg.ERR, customWriter).
+	glg.Get().SetLineTraceMode(glg.TraceLineNone)
 	go splitLogByDay()
 	go rewriteStderrFile()
 }
@@ -95,7 +96,7 @@ func rewriteStderrFile() {
 }
 
 func Debug(val ...interface{}) {
-	val = append([]interface{}{findCaller(0)}, val...)
+	val = append([]interface{}{findCaller(2)}, val...)
 	err := glg.Debug(val...)
 	if err != nil {
 		log.Println(err)
@@ -103,7 +104,7 @@ func Debug(val ...interface{}) {
 	}
 }
 func Info(val ...interface{}) {
-	val = append([]interface{}{findCaller(0)}, val...)
+	val = append([]interface{}{findCaller(2)}, val...)
 	err := glg.Info(val...)
 	if err != nil {
 		log.Println(err)
@@ -111,7 +112,7 @@ func Info(val ...interface{}) {
 	}
 }
 func Warn(val ...interface{}) {
-	val = append([]interface{}{findCaller(0)}, val...)
+	val = append([]interface{}{findCaller(2)}, val...)
 	err := glg.Warn(val...)
 	if err != nil {
 		log.Println(err)
@@ -119,16 +120,16 @@ func Warn(val ...interface{}) {
 	}
 }
 
-//func Err(val ...interface{}) {
-//	val = append([]interface{}{findCaller(0)}, val...)
-//	err := glg.Error(val...)
-//	if err != nil {
-//		log.Println(err)
-//		return
-//	}
-//}
+func Err(val ...interface{}) {
+	val = append([]interface{}{findCaller(2)}, val...)
+	err := glg.Error(val...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
 func Println(val ...interface{}) {
-	val = append([]interface{}{findCaller(0)}, val...)
+	val = append([]interface{}{findCaller(2)}, val...)
 	err := glg.Println(val...)
 	if err != nil {
 		log.Println(err)
@@ -136,31 +137,66 @@ func Println(val ...interface{}) {
 	}
 }
 func findCaller(skip int) string {
-	file := ""
-	line := 0
-	for i := 0; i < 10; i++ {
-		file, line = getCaller(skip + i)
-		//log.Println(file,line)
-		if !strings.HasPrefix(file, "logs.go") {
-			break
-		}
-	}
-	return fmt.Sprintf("(%s:%d)", file, line)
-}
-func getCaller(skip int) (string, int) {
+	var fl string
 	_, file, line, ok := runtime.Caller(skip)
-	if !ok {
-		return "", 0
-	}
-	n := 0
-	for i := len(file) - 1; i > 0; i-- {
-		if file[i] == '/' {
-			n++
-			if n >= 2 {
+	switch {
+	case !ok:
+		fl = "???:0"
+	case true:
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
 				file = file[i+1:]
 				break
 			}
 		}
+		fl = file + ":" + strconv.Itoa(line)
+	case strings.HasPrefix(file, runtime.GOROOT()+"/src"):
+		fl = "https://github.com/golang/go/blob/" + runtime.Version() + strings.TrimPrefix(file, runtime.GOROOT()) + "#L" + strconv.Itoa(line)
+	case strings.Contains(file, "go/pkg/mod/"):
+		fl = "https:/"
+		for _, path := range strings.Split(strings.SplitN(file, "go/pkg/mod/", 2)[1], "/") {
+			if strings.Contains(path, "@") {
+				sv := strings.SplitN(path, "@", 2)
+				if strings.Count(sv[1], "-") > 2 {
+					path = sv[0] + "/blob/master"
+				} else {
+					path = sv[0] + "/blob/" + sv[1]
+				}
+			}
+			fl += "/" + path
+		}
+		fl += "#L" + strconv.Itoa(line)
+	case strings.Contains(file, "go/src"):
+		fl = "https:/"
+		cnt := 0
+		for _, path := range strings.Split(strings.SplitN(file, "go/src/", 2)[1], "/") {
+			if cnt == 3 {
+				path = "blob/master/" + path
+			}
+			fl += "/" + path
+			cnt++
+		}
+		fl += "#L" + strconv.Itoa(line)
+	default:
+		fl = file + ":" + strconv.Itoa(line)
 	}
-	return file, line
+	return fl
 }
+
+//func getCaller(skip int) (string, int) {
+//	_, file, line, ok := runtime.Caller(skip)
+//	if !ok {
+//		return "", 0
+//	}
+//	n := 0
+//	for i := len(file) - 1; i > 0; i-- {
+//		if file[i] == '/' {
+//			n++
+//			if n >= 2 {
+//				file = file[i+1:]
+//				break
+//			}
+//		}
+//	}
+//	return file, line
+//}
