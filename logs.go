@@ -142,14 +142,6 @@ func findCaller(skip int) string {
 	switch {
 	case !ok:
 		fl = "???:0"
-	case true:
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				file = file[i+1:]
-				break
-			}
-		}
-		fl = file + ":" + strconv.Itoa(line)
 	case strings.HasPrefix(file, runtime.GOROOT()+"/src"):
 		fl = "https://github.com/golang/go/blob/" + runtime.Version() + strings.TrimPrefix(file, runtime.GOROOT()) + "#L" + strconv.Itoa(line)
 	case strings.Contains(file, "go/pkg/mod/"):
@@ -178,6 +170,12 @@ func findCaller(skip int) string {
 		}
 		fl += "#L" + strconv.Itoa(line)
 	default:
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				file = file[i+1:]
+				break
+			}
+		}
 		fl = file + ":" + strconv.Itoa(line)
 	}
 	return fl
