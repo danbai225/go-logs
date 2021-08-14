@@ -2,6 +2,8 @@
 
 package go_logs
 
+import "syscall"
+
 const (
 	kernel32dll = "kernel32.dll"
 )
