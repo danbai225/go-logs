@@ -5,6 +5,8 @@ import (
 	"github.com/kpango/glg"
 	"io"
 	"log"
+	"os"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -18,54 +20,62 @@ const (
 	ERR   = 8
 )
 
+var logsDir = "logs"
+
 // GinLog gin.DefaultWriter = io.MultiWriter(inits.GinLog, os.Stdout)
-var GinLog = glg.FileWriter("logs/gin.log", 0777)
-var infoLog = glg.FileWriter("logs/info.log", 0777)
-var errLog = glg.FileWriter("logs/error.log", 0777)
-var debugLog = glg.FileWriter("logs/debug.log", 0777)
-var warnLog = glg.FileWriter("logs/warn.log", 0777)
-var stdErrLog = glg.FileWriter("logs/stdErr.log", 0777)
-var WRITE = byte(INFO | ERR)
+var GinLog, infoLog, errLog, debugLog, warnLog, stdErrLog *os.File
+var writeLogs = byte(INFO | ERR)
 var StderrFile = false
 
+func SetLogsDir(dir string) {
+	logsDir = dir
+	loadFiles()
+}
+func SetWriteLogs(logs byte) {
+	writeLogs = logs
+}
+func loadFiles() {
+	GinLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"), 0777)
+	infoLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"), 0777)
+	errLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"), 0777)
+	debugLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"), 0777)
+	warnLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"), 0777)
+	stdErrLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"), 0777)
+
+}
+func cuttingOff() {
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"))).Run()
+}
 func init() {
-	glg.Get().
-		SetMode(glg.BOTH) // default is STD
-	// DisableColor().
-	// SetMode(glg.NONE).
-	// SetMode(glg.WRITER).
-	// SetMode(glg.BOTH).
-	// InitWriter().
-	// AddWriter(customWriter).
-	// SetWriter(customWriter).
-	// AddLevelWriter(glg.LOG, customWriter).
-	// AddLevelWriter(glg.INFO, customWriter).
-	// AddLevelWriter(glg.WARN, customWriter).
-	// AddLevelWriter(glg.ERR, customWriter).
-	// SetLevelWriter(glg.LOG, customWriter).
-	// SetLevelWriter(glg.INFO, customWriter).
-	// SetLevelWriter(glg.WARN, customWriter).
-	// SetLevelWriter(glg.ERR, customWriter).
+	loadFiles()
+	glg.Get().SetMode(glg.BOTH)
 	glg.Get().SetLineTraceMode(glg.TraceLineNone)
 	go splitLogByDay()
 	go rewriteStderrFile()
 }
 func splitLogByDay() {
 	timeDay := "2006-01-02"
+	cDir := logsDir
 	for {
 		NowTimeDay := time.Now().Format("2006-01-02")
-		if NowTimeDay > timeDay {
-			if (WRITE & INFO) != 0 {
-				glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(glg.FileWriter(fmt.Sprintf("logs/%s-info.log", NowTimeDay), 0777), infoLog))
+		if NowTimeDay > timeDay || cDir != logsDir {
+			cuttingOff()
+			if (writeLogs & INFO) != 0 {
+				glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, NowTimeDay), 0777), infoLog))
 			}
-			if (WRITE & ERR) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("logs/%s-err.log", NowTimeDay), 0777), errLog))
+			if (writeLogs & ERR) != 0 {
+				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, NowTimeDay), 0777), errLog))
 			}
-			if (WRITE & WARN) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("logs/%s-warn.log", NowTimeDay), 0777), warnLog))
+			if (writeLogs & WARN) != 0 {
+				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, NowTimeDay), 0777), warnLog))
 			}
-			if (WRITE & DEBUG) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("logs/%s-debug.log", NowTimeDay), 0777), debugLog))
+			if (writeLogs & DEBUG) != 0 {
+				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay), 0777), debugLog))
 			}
 		}
 		time.Sleep(time.Second)
