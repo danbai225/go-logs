@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -43,14 +42,7 @@ func loadFiles() {
 	stdErrLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"), 0777)
 
 }
-func cuttingOff() {
-	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
-	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
-	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"))).Run()
-	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"))).Run()
-	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
-	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"))).Run()
-}
+
 func init() {
 	loadFiles()
 	glg.Get().SetMode(glg.BOTH)

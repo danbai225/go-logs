@@ -3,7 +3,9 @@
 package go_logs
 
 import (
+	"fmt"
 	"os"
+	"os/exec"
 	"syscall"
 )
 
@@ -15,4 +17,12 @@ func rewriteStderrFile() error {
 		return err
 	}
 	return nil
+}
+func cuttingOff() {
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
+	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"))).Run()
 }
