@@ -2,7 +2,11 @@
 
 package go_logs
 
-import "syscall"
+import (
+	"fmt"
+	"os"
+	"syscall"
+)
 
 const (
 	kernel32dll = "kernel32.dll"
@@ -22,10 +26,28 @@ func rewriteStderrFile() error {
 	return nil
 }
 func cuttingOff() {
-	exec.Command(fmt.Sprintf("@echo.>%s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
-	exec.Command(fmt.Sprintf("@echo.>%s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
-	exec.Command(fmt.Sprintf("@echo.>%s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"))).Run()
-	exec.Command(fmt.Sprintf("@echo.>%s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"))).Run()
-	exec.Command(fmt.Sprintf("@echo.>%s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
-	exec.Command(fmt.Sprintf("@echo.>%s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"))).Run()
+	infoLog.Close()
+	path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log")
+	infoLog = empty(path)
+
+	errLog.Close()
+	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log")
+	errLog = empty(path)
+
+	debugLog.Close()
+	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log")
+	debugLog = empty(path)
+
+	warnLog.Close()
+	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log")
+	warnLog = empty(path)
+	warnLog, _ = os.Open(path)
+}
+func empty(path string) *os.File {
+	os.Remove(path)
+	create, err := os.Create(path)
+	if err == nil {
+		return create
+	}
+	return nil
 }

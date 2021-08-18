@@ -69,6 +69,7 @@ func splitLogByDay() {
 			if (writeLogs & DEBUG) != 0 {
 				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay), 0777), debugLog))
 			}
+			timeDay = NowTimeDay
 		}
 		time.Sleep(time.Second)
 	}
