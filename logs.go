@@ -50,6 +50,7 @@ func init() {
 	go splitLogByDay()
 	go rewriteStderrFile()
 }
+var logsFiles []*os.File
 func splitLogByDay() {
 	timeDay := "2006-01-02"
 	cDir := logsDir
@@ -57,22 +58,39 @@ func splitLogByDay() {
 		NowTimeDay := time.Now().Format("2006-01-02")
 		if NowTimeDay > timeDay || cDir != logsDir {
 			cuttingOff()
+			closeFiles()
 			if (writeLogs & INFO) != 0 {
-				glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, NowTimeDay), 0777), infoLog))
+				glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, NowTimeDay)), infoLog))
 			}
 			if (writeLogs & ERR) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, NowTimeDay), 0777), errLog))
+				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, NowTimeDay)), errLog))
 			}
 			if (writeLogs & WARN) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, NowTimeDay), 0777), warnLog))
+				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, NowTimeDay)), warnLog))
 			}
 			if (writeLogs & DEBUG) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(glg.FileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay), 0777), debugLog))
+				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay)), debugLog))
 			}
 			timeDay = NowTimeDay
 		}
 		time.Sleep(time.Second)
 	}
+}
+func getFileWriter(path string)*os.File  {
+	if logsFiles==nil{
+		logsFiles = make([]*os.File, 0)
+	}
+	writer := glg.FileWriter(path, 0666)
+	logsFiles=append(logsFiles,writer)
+	return writer
+}
+func closeFiles()  {
+	if logsFiles!=nil{
+		for _, file := range logsFiles {
+			file.Close()
+		}
+	}
+	logsFiles = make([]*os.File, 0)
 }
 func Debug(val ...interface{}) {
 	val = append([]interface{}{findCaller(2)}, val...)
