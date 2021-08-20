@@ -26,6 +26,10 @@ func rewriteStderrFile() error {
 	return nil
 }
 func cuttingOff() {
+	if ini {
+		ini = false
+		return
+	}
 	infoLog.Close()
 	path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log")
 	infoLog = empty(path)

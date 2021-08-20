@@ -19,6 +19,10 @@ func rewriteStderrFile() error {
 	return nil
 }
 func cuttingOff() {
+	if ini {
+		ini = false
+		return
+	}
 	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
 	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
 	exec.Command("bash", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"))).Run()

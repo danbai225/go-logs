@@ -6,7 +6,6 @@ import (
 )
 
 func Test(t *testing.T) {
-	time.Sleep(2 * time.Second)
 	Debug("Debug")
 	Println("Println")
 	Info("Info")

@@ -33,14 +33,22 @@ func SetLogsDir(dir string) {
 func SetWriteLogs(logs byte) {
 	writeLogs = logs
 }
+func GetGinWriter() *os.File {
+	return GinLog
+}
 func loadFiles() {
 	GinLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"), 0777)
 	infoLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"), 0777)
+	glg.Get().SetLevelWriter(glg.INFO, infoLog)
 	errLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"), 0777)
+	glg.Get().SetLevelWriter(glg.ERR, errLog)
 	debugLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"), 0777)
+	glg.Get().SetLevelWriter(glg.DEBG, debugLog)
 	warnLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"), 0777)
-	stdErrLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"), 0777)
-
+	glg.Get().SetLevelWriter(glg.WARN, warnLog)
+	if StderrFile {
+		stdErrLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"), 0777)
+	}
 }
 
 func init() {
@@ -50,7 +58,10 @@ func init() {
 	go splitLogByDay()
 	go rewriteStderrFile()
 }
+
 var logsFiles []*os.File
+var ini = true
+
 func splitLogByDay() {
 	timeDay := "2006-01-02"
 	cDir := logsDir
@@ -76,18 +87,20 @@ func splitLogByDay() {
 		time.Sleep(time.Second)
 	}
 }
-func getFileWriter(path string)*os.File  {
-	if logsFiles==nil{
+func getFileWriter(path string) *os.File {
+	if logsFiles == nil {
 		logsFiles = make([]*os.File, 0)
 	}
 	writer := glg.FileWriter(path, 0666)
-	logsFiles=append(logsFiles,writer)
+	logsFiles = append(logsFiles, writer)
 	return writer
 }
-func closeFiles()  {
-	if logsFiles!=nil{
+func closeFiles() {
+	if logsFiles != nil {
 		for _, file := range logsFiles {
-			file.Close()
+			if file != nil {
+				file.Close()
+			}
 		}
 	}
 	logsFiles = make([]*os.File, 0)
