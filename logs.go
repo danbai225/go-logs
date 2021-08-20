@@ -26,6 +26,7 @@ var GinLog, infoLog, errLog, debugLog, warnLog, stdErrLog *os.File
 var writeLogs = byte(INFO | ERR)
 var StderrFile = false
 
+// SetLogsDir 切换目录可能会会损失部分日志
 func SetLogsDir(dir string) {
 	logsDir = dir
 	loadFiles()

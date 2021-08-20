@@ -18,3 +18,17 @@ func Test(t *testing.T) {
 	Warn("Warn")
 	Err("Err")
 }
+func TestDir(t *testing.T) {
+	Debug("Debug")
+	Println("Println")
+	Info("Info")
+	Warn("Warn")
+	Err("Err")
+	SetLogsDir("logs-2")
+	time.Sleep(2 * time.Second)
+	Debug("Debug")
+	Println("Println")
+	Info("Info")
+	Warn("Warn")
+	Err("Err")
+}
