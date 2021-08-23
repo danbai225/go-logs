@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -25,6 +27,7 @@ var logsDir = "logs"
 var GinLog, infoLog, errLog, debugLog, warnLog, stdErrLog *os.File
 var writeLogs = byte(INFO | ERR)
 var StderrFile = false
+var saveDay = 30
 
 // SetLogsDir 切换目录可能会会损失部分日志
 func SetLogsDir(dir string) {
@@ -37,11 +40,14 @@ func SetWriteLogs(logs byte) {
 func GetGinWriter() *os.File {
 	return GinLog
 }
+func SetSaveDay(day int) {
+	saveDay = day
+}
 func loadFiles() {
 	GinLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"), 0777)
 	infoLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"), 0777)
 	glg.Get().SetLevelWriter(glg.INFO, infoLog)
-	errLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log"), 0777)
+	errLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "err.log"), 0777)
 	glg.Get().SetLevelWriter(glg.ERR, errLog)
 	debugLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"), 0777)
 	glg.Get().SetLevelWriter(glg.DEBG, debugLog)
@@ -84,8 +90,40 @@ func splitLogByDay() {
 				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay)), debugLog))
 			}
 			timeDay = NowTimeDay
+			go clearingRedundantLogs()
 		}
 		time.Sleep(time.Second)
+	}
+}
+func getLogsName() []string {
+	files := make([]string, 0)
+	root := logsDir
+	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		files = append(files, path)
+		return nil
+	})
+	return files
+}
+func clearingRedundantLogs() {
+	logs := getLogsName()
+	//今日日期
+	now := time.Now()
+	date := now.Add(-(time.Duration(now.Hour())*time.Hour + time.Duration(now.Minute())*time.Minute + time.Duration(now.Second())*time.Second))
+	inDate := make(map[string]struct{})
+
+	for i := 0; i <= saveDay; i++ {
+		d := date.AddDate(0, 0, -i)
+		format := d.Format("2006-01-02")
+		inDate[format] = struct{}{}
+	}
+	for _, logPath := range logs {
+		base := path.Base(logPath)
+		if len(base) > 10 {
+			logDate := base[:10]
+			if _, has := inDate[logDate]; !has {
+				os.Remove(logPath)
+			}
+		}
 	}
 }
 func getFileWriter(path string) *os.File {
