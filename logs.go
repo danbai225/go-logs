@@ -21,7 +21,7 @@ const (
 	ERR   = 8
 )
 
-var logsDir = "logs"
+var logsDir = "./logs"
 
 // GinLog gin.DefaultWriter = io.MultiWriter(inits.GinLog, os.Stdout)
 var GinLog, infoLog, errLog, debugLog, warnLog, stdErrLog *os.File

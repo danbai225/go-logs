@@ -1,4 +1,5 @@
-//+build windows
+//go:build windows
+// +build windows
 
 package go_logs
 
@@ -35,7 +36,7 @@ func cuttingOff() {
 	infoLog = empty(path)
 
 	errLog.Close()
-	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "error.log")
+	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "err.log")
 	errLog = empty(path)
 
 	debugLog.Close()
