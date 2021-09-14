@@ -23,10 +23,8 @@ const (
 
 var logsDir = "./logs"
 
-// GinLog gin.DefaultWriter = io.MultiWriter(inits.GinLog, os.Stdout)
-var GinLog, infoLog, errLog, debugLog, warnLog, stdErrLog *os.File
+var GinLog, infoLog, errLog, debugLog, warnLog *os.File
 var writeLogs = byte(INFO | ERR)
-var StderrFile = false
 var saveDay = 30
 
 // SetLogsDir 切换目录可能会会损失部分日志
@@ -53,9 +51,6 @@ func loadFiles() {
 	glg.Get().SetLevelWriter(glg.DEBG, debugLog)
 	warnLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"), 0777)
 	glg.Get().SetLevelWriter(glg.WARN, warnLog)
-	if StderrFile {
-		stdErrLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "stdErr.log"), 0777)
-	}
 }
 
 func init() {
@@ -63,7 +58,6 @@ func init() {
 	glg.Get().SetMode(glg.BOTH)
 	glg.Get().SetLineTraceMode(glg.TraceLineNone)
 	go splitLogByDay()
-	go rewriteStderrFile()
 }
 
 var logsFiles []*os.File
@@ -98,7 +92,7 @@ func splitLogByDay() {
 func getLogsName() []string {
 	files := make([]string, 0)
 	root := logsDir
-	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		files = append(files, path)
 		return nil
 	})
@@ -121,7 +115,7 @@ func clearingRedundantLogs() {
 		if len(base) > 10 {
 			logDate := base[:10]
 			if _, has := inDate[logDate]; !has {
-				os.Remove(logPath)
+				_ = os.Remove(logPath)
 			}
 		}
 	}
@@ -138,7 +132,7 @@ func closeFiles() {
 	if logsFiles != nil {
 		for _, file := range logsFiles {
 			if file != nil {
-				file.Close()
+				_ = file.Close()
 			}
 		}
 	}
@@ -160,6 +154,9 @@ func Info(val ...interface{}) {
 		return
 	}
 }
+func InfoF(format string, a ...interface{}) {
+	Info(fmt.Sprintf(format, a...))
+}
 func Warn(val ...interface{}) {
 	val = append([]interface{}{findCaller(2)}, val...)
 	err := glg.Warn(val...)
@@ -176,6 +173,9 @@ func Err(val ...interface{}) {
 		log.Println(err)
 		return
 	}
+}
+func ErrF(format string, a ...interface{}) {
+	Err(fmt.Sprintf(format, a...))
 }
 func Println(val ...interface{}) {
 	val = append([]interface{}{findCaller(2)}, val...)
@@ -195,26 +195,26 @@ func findCaller(skip int) string {
 		fl = "https://github.com/golang/go/blob/" + runtime.Version() + strings.TrimPrefix(file, runtime.GOROOT()) + "#L" + strconv.Itoa(line)
 	case strings.Contains(file, "go/pkg/mod/"):
 		fl = "https:/"
-		for _, path := range strings.Split(strings.SplitN(file, "go/pkg/mod/", 2)[1], "/") {
-			if strings.Contains(path, "@") {
-				sv := strings.SplitN(path, "@", 2)
+		for _, lPath := range strings.Split(strings.SplitN(file, "go/pkg/mod/", 2)[1], "/") {
+			if strings.Contains(lPath, "@") {
+				sv := strings.SplitN(lPath, "@", 2)
 				if strings.Count(sv[1], "-") > 2 {
-					path = sv[0] + "/blob/master"
+					lPath = sv[0] + "/blob/master"
 				} else {
-					path = sv[0] + "/blob/" + sv[1]
+					lPath = sv[0] + "/blob/" + sv[1]
 				}
 			}
-			fl += "/" + path
+			fl += "/" + lPath
 		}
 		fl += "#L" + strconv.Itoa(line)
 	case strings.Contains(file, "go/src"):
 		fl = "https:/"
 		cnt := 0
-		for _, path := range strings.Split(strings.SplitN(file, "go/src/", 2)[1], "/") {
+		for _, lPath := range strings.Split(strings.SplitN(file, "go/src/", 2)[1], "/") {
 			if cnt == 3 {
-				path = "blob/master/" + path
+				lPath = "blob/master/" + lPath
 			}
-			fl += "/" + path
+			fl += "/" + lPath
 			cnt++
 		}
 		fl += "#L" + strconv.Itoa(line)

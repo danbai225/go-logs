@@ -17,6 +17,8 @@ func Test(t *testing.T) {
 	Info("Info")
 	Warn("Warn")
 	Err("Err")
+	println("123")
+	panic("err")
 }
 func TestDir(t *testing.T) {
 	Debug("Debug")
