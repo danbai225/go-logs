@@ -13,22 +13,28 @@ func cuttingOff() {
 		ini = false
 		return
 	}
-	infoLog.Close()
-	path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log")
-	infoLog = empty(path)
+	if infoLog != nil {
+		infoLog.Close()
+		path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log")
+		infoLog = empty(path)
+	}
+	if errLog != nil {
+		errLog.Close()
+		path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "err.log")
+		errLog = empty(path)
+	}
 
-	errLog.Close()
-	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "err.log")
-	errLog = empty(path)
+	if debugLog != nil {
+		debugLog.Close()
+		path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log")
+		debugLog = empty(path)
+	}
+	if warnLog != nil {
+		warnLog.Close()
+		path := fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log")
+		warnLog = empty(path)
+	}
 
-	debugLog.Close()
-	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log")
-	debugLog = empty(path)
-
-	warnLog.Close()
-	path = fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log")
-	warnLog = empty(path)
-	warnLog, _ = os.Open(path)
 }
 func empty(path string) *os.File {
 	os.Remove(path)
