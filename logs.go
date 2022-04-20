@@ -22,13 +22,17 @@ const (
 )
 
 var logsDir = "./logs"
-
+var logsDirC = make(chan string, 1)
 var GinLog, infoLog, errLog, debugLog, warnLog *os.File
 var writeLogs = byte(INFO | ERR)
 var saveDay = 30
+var after = time.After(timeRemaining())
 
 // SetLogsDir 切换目录可能会会损失部分日志
 func SetLogsDir(dir string) {
+	if dir != logsDir {
+		logsDirC <- dir
+	}
 	logsDir = dir
 	loadFiles()
 }
@@ -82,30 +86,40 @@ func init() {
 var logsFiles []*os.File
 var ini = true
 
+func timeRemaining() time.Duration {
+	todayLast := time.Now().Format("2006-01-02") + " 23:59:59"
+	todayLastTime, _ := time.ParseInLocation("2006-01-02 15:04:05", todayLast, time.Local)
+	return time.Duration(todayLastTime.Unix()-time.Now().Local().Unix()) * time.Second
+}
+func splitLog(fromTime bool) {
+	NowTimeDay := time.Now().Format("2006-01-02")
+	cuttingOff()
+	closeFiles()
+	if (writeLogs & INFO) != 0 {
+		glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, NowTimeDay)), infoLog))
+	}
+	if (writeLogs & ERR) != 0 {
+		glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, NowTimeDay)), errLog))
+	}
+	if (writeLogs & WARN) != 0 {
+		glg.Get().SetLevelWriter(glg.WARN, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, NowTimeDay)), warnLog))
+	}
+	if (writeLogs & DEBUG) != 0 {
+		glg.Get().SetLevelWriter(glg.DEBG, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay)), debugLog))
+	}
+	go clearingRedundantLogs()
+	if fromTime {
+		after = time.After(timeRemaining())
+	}
+}
 func splitLogByDay() {
-	timeDay := "2006-01-02"
-	cDir := logsDir
 	for {
-		NowTimeDay := time.Now().Format("2006-01-02")
-		if NowTimeDay > timeDay || cDir != logsDir {
-			cuttingOff()
-			closeFiles()
-			if (writeLogs & INFO) != 0 {
-				glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, NowTimeDay)), infoLog))
-			}
-			if (writeLogs & ERR) != 0 {
-				glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, NowTimeDay)), errLog))
-			}
-			if (writeLogs & WARN) != 0 {
-				glg.Get().SetLevelWriter(glg.WARN, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, NowTimeDay)), warnLog))
-			}
-			if (writeLogs & DEBUG) != 0 {
-				glg.Get().SetLevelWriter(glg.DEBG, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay)), debugLog))
-			}
-			timeDay = NowTimeDay
-			go clearingRedundantLogs()
+		select {
+		case <-after:
+			splitLog(true)
+		case <-logsDirC:
+			splitLog(false)
 		}
-		time.Sleep(time.Second)
 	}
 }
 func getLogsName() []string {
