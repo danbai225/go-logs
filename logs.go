@@ -1,6 +1,7 @@
 package go_logs
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/kpango/glg"
 	"io"
@@ -71,8 +72,8 @@ func loadFiles() {
 	if (writeLogs & WARN) != 0 {
 		warnLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"), 0777)
 		glg.Get().SetLevelWriter(glg.WARN, warnLog)
-	} else if debugLog != nil {
-		_ = debugLog.Close()
+	} else if warnLog != nil {
+		_ = warnLog.Close()
 	}
 }
 
@@ -182,6 +183,22 @@ func Debug(val ...interface{}) {
 func Info(val ...interface{}) {
 	val = append([]interface{}{findCaller(2)}, val...)
 	err := glg.Info(val...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+func PrintJson(val ...interface{}) {
+	var arr []string
+	for i := range val {
+		marshal, err := json.Marshal(val[i])
+		if err != nil {
+			marshal = []byte(err.Error())
+		}
+		arr = append(arr, string(marshal))
+	}
+	val = append([]interface{}{findCaller(2)}, val...)
+	err := glg.Info(strings.Join(arr, ","))
 	if err != nil {
 		log.Println(err)
 		return

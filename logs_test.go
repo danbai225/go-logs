@@ -19,6 +19,7 @@ func Test(t *testing.T) {
 	Err("Err")
 	println("123")
 	SetWriteLogs(INFO | ERR | DEBUG)
+	time.Sleep(2 * time.Second)
 	Debug("Debug")
 }
 func TestDir(t *testing.T) {
@@ -34,4 +35,10 @@ func TestDir(t *testing.T) {
 	Info("Info")
 	Warn("Warn")
 	Err("Err")
+}
+func TestJson(t *testing.T) {
+	PrintJson(struct {
+		Name string
+		Age  int64
+	}{Name: "test", Age: 18})
 }
