@@ -14,9 +14,19 @@ func cuttingOff() {
 		ini = false
 		return
 	}
-	_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
-	_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
-	_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "err.log"))).Run()
-	_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"))).Run()
-	_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
+	if GinLog != nil {
+		_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"))).Run()
+	}
+	if infoLog != nil {
+		_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "info.log"))).Run()
+	}
+	if errLog != nil {
+		_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "err.log"))).Run()
+	}
+	if debugLog != nil {
+		_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "debug.log"))).Run()
+	}
+	if warnLog != nil {
+		_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
+	}
 }
