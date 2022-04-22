@@ -28,13 +28,13 @@ func cuttingOff() {
 	}
 }
 func redirectStderr(f *os.File) error {
-	if err = syscall.Dup2(int(file.Fd()), int(os.Stderr.Fd())); err != nil {
+	if err := syscall.Dup2(int(file.Fd()), int(os.Stderr.Fd())); err != nil {
 		return err
 	}
 	return nil
 }
 func redirectStdout(f *os.File) error {
-	if err = syscall.Dup2(int(file.Fd()), int(os.Stdout.Fd())); err != nil {
+	if err := syscall.Dup2(int(file.Fd()), int(os.Stdout.Fd())); err != nil {
 		return err
 	}
 	return nil
