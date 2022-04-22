@@ -20,13 +20,15 @@ const (
 	INFO  = 2
 	WARN  = 4
 	ERR   = 8
+	STD   = 16
 )
 
 var logsDir = "./logs"
 var logsDirC = make(chan string, 1)
-var GinLog, infoLog, errLog, debugLog, warnLog *os.File
+var stdLog, httpLog, infoLog, errLog, debugLog, warnLog *os.File
 var writeLogs = byte(INFO | ERR)
 var saveDay = 30
+var redirectStdLog = false
 var after = time.After(timeRemaining())
 
 // SetLogsDir 切换目录可能会会损失部分日志
@@ -39,16 +41,23 @@ func SetLogsDir(dir string) {
 }
 func SetWriteLogs(logs byte) {
 	writeLogs = logs
+	if redirectStdLog {
+		writeLogs = writeLogs | STD
+	}
 	loadFiles()
 }
-func GetGinWriter() *os.File {
-	if GinLog == nil {
-		GinLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "gin.log"), 0777)
+func GetHttpWriter() *os.File {
+	if httpLog == nil {
+		httpLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "http.log"), 0777)
 	}
-	return GinLog
+	return httpLog
 }
 func SetSaveDay(day int) {
 	saveDay = day
+}
+func SetRedirectStdLog() {
+	redirectStdLog = true
+	SetWriteLogs(writeLogs)
 }
 func loadFiles() {
 	if (writeLogs & INFO) != 0 {
@@ -74,6 +83,19 @@ func loadFiles() {
 		glg.Get().SetLevelWriter(glg.WARN, warnLog)
 	} else if warnLog != nil {
 		_ = warnLog.Close()
+	}
+	if (writeLogs & STD) != 0 {
+		stdLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "std.log"), 0777)
+		err := redirectStdout(stdLog)
+		if err != nil {
+			println(err.Error())
+		}
+		err = redirectStderr(stdLog)
+		if err != nil {
+			println(err.Error())
+		}
+	} else if stdLog != nil {
+		_ = stdLog.Close()
 	}
 }
 
