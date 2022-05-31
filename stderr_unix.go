@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 )
 
 func cuttingOff() {
@@ -27,16 +26,4 @@ func cuttingOff() {
 	if warnLog != nil {
 		_ = exec.Command("sh", "-c", fmt.Sprintf("cp /dev/null %s", fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "warn.log"))).Run()
 	}
-}
-func redirectStderr(f *os.File) error {
-	if err := syscall.Dup2(int(f.Fd()), int(os.Stderr.Fd())); err != nil {
-		return err
-	}
-	return nil
-}
-func redirectStdout(f *os.File) error {
-	if err := syscall.Dup2(int(f.Fd()), int(os.Stdout.Fd())); err != nil {
-		return err
-	}
-	return nil
 }
