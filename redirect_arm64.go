@@ -1,5 +1,5 @@
-//go:build !windows && arm64
-// +build !windows,arm64
+//go:build !windows && !darwin && arm64
+// +build !windows,!darwin,arm64
 
 package go_logs
 
