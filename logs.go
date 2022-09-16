@@ -194,22 +194,7 @@ func closeFiles() {
 	}
 	logsFiles = make([]*os.File, 0)
 }
-func Debug(val ...interface{}) {
-	val = append([]interface{}{findCaller(2)}, val...)
-	err := glg.Debug(val...)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-}
-func Info(val ...interface{}) {
-	val = append([]interface{}{findCaller(2)}, val...)
-	err := glg.Info(val...)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-}
+
 func PrintJson(val ...interface{}) {
 	var arr []string
 	for i := range val {
@@ -229,23 +214,7 @@ func PrintJson(val ...interface{}) {
 func InfoF(format string, a ...interface{}) {
 	Info(fmt.Sprintf(format, a...))
 }
-func Warn(val ...interface{}) {
-	val = append([]interface{}{findCaller(2)}, val...)
-	err := glg.Warn(val...)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-}
 
-func Err(val ...interface{}) {
-	val = append([]interface{}{findCaller(2)}, val...)
-	err := glg.Error(val...)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-}
 func ErrF(format string, a ...interface{}) {
 	Err(fmt.Sprintf(format, a...))
 }
@@ -301,21 +270,47 @@ func findCaller(skip int) string {
 	}
 	return fl
 }
-
-//func getCaller(skip int) (string, int) {
-//	_, file, line, ok := runtime.Caller(skip)
-//	if !ok {
-//		return "", 0
-//	}
-//	n := 0
-//	for i := len(file) - 1; i > 0; i-- {
-//		if file[i] == '/' {
-//			n++
-//			if n >= 2 {
-//				file = file[i+1:]
-//				break
-//			}
-//		}
-//	}
-//	return file, line
-//}
+func DebugN(n int, val ...interface{}) {
+	val = append([]interface{}{findCaller(n + 3)}, val...)
+	err := glg.Debug(val...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+func Debug(val ...interface{}) {
+	DebugN(0, val)
+}
+func InfoN(n int, val ...interface{}) {
+	val = append([]interface{}{findCaller(n + 3)}, val...)
+	err := glg.Info(val...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+func Info(val ...interface{}) {
+	InfoN(0, val)
+}
+func WarnN(n int, val ...interface{}) {
+	val = append([]interface{}{findCaller(n + 3)}, val...)
+	err := glg.Warn(val...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+func Warn(val ...interface{}) {
+	WarnN(0, val)
+}
+func ErrN(n int, val ...interface{}) {
+	val = append([]interface{}{findCaller(n + 3)}, val...)
+	err := glg.Error(val...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+func Err(val ...interface{}) {
+	ErrN(0, val)
+}
