@@ -279,7 +279,7 @@ func DebugN(n int, val ...interface{}) {
 	}
 }
 func Debug(val ...interface{}) {
-	DebugN(0, val)
+	DebugN(0, val...)
 }
 func InfoN(n int, val ...interface{}) {
 	val = append([]interface{}{findCaller(n + 3)}, val...)
@@ -290,7 +290,7 @@ func InfoN(n int, val ...interface{}) {
 	}
 }
 func Info(val ...interface{}) {
-	InfoN(0, val)
+	InfoN(0, val...)
 }
 func WarnN(n int, val ...interface{}) {
 	val = append([]interface{}{findCaller(n + 3)}, val...)
@@ -301,7 +301,7 @@ func WarnN(n int, val ...interface{}) {
 	}
 }
 func Warn(val ...interface{}) {
-	WarnN(0, val)
+	WarnN(0, val...)
 }
 func ErrN(n int, val ...interface{}) {
 	val = append([]interface{}{findCaller(n + 3)}, val...)
@@ -312,5 +312,5 @@ func ErrN(n int, val ...interface{}) {
 	}
 }
 func Err(val ...interface{}) {
-	ErrN(0, val)
+	ErrN(0, val...)
 }
