@@ -25,18 +25,17 @@ func Test(t *testing.T) {
 	Debug("Debug")
 }
 func TestDir(t *testing.T) {
-	Debug("Debug")
-	Println("Println")
-	Info("Info")
-	Warn("Warn")
-	Err("Err")
+	Debug("Debug-logs")
+	Println("Println-logs")
+	Info("Info-logs")
+	Warn("Warn-logs")
+	Err("Err-logs")
 	SetLogsDir("logs-2")
-	time.Sleep(2 * time.Second)
-	Debug("Debug")
-	Println("Println")
-	Info("Info")
-	Warn("Warn")
-	Err("Err")
+	Debug("Debug-logs2")
+	Println("Println-logs2")
+	Info("Info-logs2")
+	Warn("Warn-logs2")
+	Err("Err-logs2")
 }
 func TestJson(t *testing.T) {
 	PrintJson(struct {

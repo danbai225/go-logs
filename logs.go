@@ -110,28 +110,45 @@ var logsFiles []*os.File
 var ini = true
 
 func timeRemaining() time.Duration {
-	todayLast := time.Now().Format("2006-01-02") + " 23:59:59"
-	todayLastTime, _ := time.ParseInLocation("2006-01-02 15:04:05", todayLast, time.Local)
-	return time.Duration(todayLastTime.Unix()-time.Now().Local().Unix()) * time.Second
+	tomorrow := time.Now().AddDate(0, 0, 1).Format("2006-01-02") + " 00:00:00"
+	tomorrowTime, _ := time.ParseInLocation("2006-01-02 15:04:05", tomorrow, time.Local)
+	return time.Until(tomorrowTime)
 }
 func splitLog(fromTime bool) {
-	NowTimeDay := time.Now().Format("2006-01-02")
 	cuttingOff()
 	closeFiles()
+	//上一天日期
+	previousDate := time.Now().Add(time.Minute * -1).Format("2006-01-02")
 	if (writeLogs & INFO) != 0 {
-		glg.Get().SetLevelWriter(glg.INFO, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, NowTimeDay)), infoLog))
+		wt := io.Writer(infoLog)
+		if fromTime {
+			wt = io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-info.log", logsDir, previousDate)), infoLog)
+		}
+		glg.Get().SetLevelWriter(glg.INFO, wt)
 	}
 	if (writeLogs & ERR) != 0 {
-		glg.Get().SetLevelWriter(glg.ERR, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, NowTimeDay)), errLog))
+		wt := io.Writer(errLog)
+		if fromTime {
+			wt = io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-err.log", logsDir, previousDate)), errLog)
+		}
+		glg.Get().SetLevelWriter(glg.ERR, wt)
 	}
 	if (writeLogs & WARN) != 0 {
-		glg.Get().SetLevelWriter(glg.WARN, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, NowTimeDay)), warnLog))
+		wt := io.Writer(warnLog)
+		if fromTime {
+			wt = io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-warn.log", logsDir, previousDate)), warnLog)
+		}
+		glg.Get().SetLevelWriter(glg.WARN, wt)
 	}
 	if (writeLogs & DEBUG) != 0 {
-		glg.Get().SetLevelWriter(glg.DEBG, io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, NowTimeDay)), debugLog))
+		wt := io.Writer(debugLog)
+		if fromTime {
+			wt = io.MultiWriter(getFileWriter(fmt.Sprintf("%s/%s-debug.log", logsDir, previousDate)), debugLog)
+		}
+		glg.Get().SetLevelWriter(glg.DEBG, wt)
 	}
-	go clearingRedundantLogs()
 	if fromTime {
+		go clearingRedundantLogs()
 		after = time.After(timeRemaining())
 	}
 }
