@@ -103,6 +103,7 @@ func init() {
 	loadFiles()
 	glg.Get().SetMode(glg.BOTH)
 	glg.Get().SetLineTraceMode(glg.TraceLineNone)
+	glg.Get().SetTimeLocation(time.Local)
 	go splitLogByDay()
 }
 
