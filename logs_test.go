@@ -44,15 +44,6 @@ func TestJson(t *testing.T) {
 	}{Name: "test", Age: 18})
 }
 
-func TestPanic(t *testing.T) {
-	var std, _ = os.Create("_tempStderr.log")
-	redirectStderr(std)
-	redirectStdout(std)
-	println("1")
-	os.Stderr.WriteString("123")
-	os.Stdout.WriteString("321")
-	panic(2)
-}
 func TestFlag(t *testing.T) {
 	flag := byte(INFO | STD)
 	println(flag & STD)

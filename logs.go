@@ -20,12 +20,11 @@ const (
 	INFO  = 2
 	WARN  = 4
 	ERR   = 8
-	STD   = 16
 )
 
 var logsDir = "./logs"
 var logsDirC = make(chan string, 1)
-var stdLog, httpLog, infoLog, errLog, debugLog, warnLog *os.File
+var httpLog, infoLog, errLog, debugLog, warnLog *os.File
 var writeLogs = byte(INFO | ERR)
 var saveDay = 30
 var redirectStdLog = false
@@ -41,9 +40,6 @@ func SetLogsDir(dir string) {
 }
 func SetWriteLogs(logs byte) {
 	writeLogs = logs
-	if redirectStdLog {
-		writeLogs = writeLogs | STD
-	}
 	loadFiles()
 }
 func GetHttpWriter() *os.File {
@@ -83,19 +79,6 @@ func loadFiles() {
 		glg.Get().SetLevelWriter(glg.WARN, warnLog)
 	} else if warnLog != nil {
 		_ = warnLog.Close()
-	}
-	if (writeLogs & STD) != 0 {
-		stdLog = glg.FileWriter(fmt.Sprintf("%s%c%s", logsDir, os.PathSeparator, "std.log"), 0777)
-		err := redirectStdout(stdLog)
-		if err != nil {
-			println(err.Error())
-		}
-		err = redirectStderr(stdLog)
-		if err != nil {
-			println(err.Error())
-		}
-	} else if stdLog != nil {
-		_ = stdLog.Close()
 	}
 }
 
