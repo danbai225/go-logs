@@ -212,12 +212,17 @@ func PrintJson(val ...interface{}) {
 		return
 	}
 }
-func InfoF(format string, a ...interface{}) {
-	Info(fmt.Sprintf(format, a...))
+func DebugF(format string, a ...interface{}) {
+	DebugN(0, fmt.Sprintf(format, a...))
 }
-
+func InfoF(format string, a ...interface{}) {
+	InfoN(0, fmt.Sprintf(format, a...))
+}
+func WarnF(format string, a ...interface{}) {
+	WarnN(0, fmt.Sprintf(format, a...))
+}
 func ErrF(format string, a ...interface{}) {
-	Err(fmt.Sprintf(format, a...))
+	ErrN(0, fmt.Sprintf(format, a...))
 }
 func Println(val ...interface{}) {
 	val = append([]interface{}{findCaller(2)}, val...)

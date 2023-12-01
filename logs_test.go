@@ -1,8 +1,6 @@
 package go_logs
 
 import (
-	"os"
-	"sync"
 	"testing"
 	"time"
 )
@@ -45,30 +43,15 @@ func TestJson(t *testing.T) {
 }
 
 func TestFlag(t *testing.T) {
-	flag := byte(INFO | STD)
-	println(flag & STD)
+	flag := byte(INFO)
 	println(flag & INFO)
 	flag = flag | ERR
 	println(flag & ERR)
-	println(flag & STD)
 	println(flag & INFO)
 }
-func TestSTD(t *testing.T) {
-	SetRedirectStdLog()
-	Println("123")
-	group := &sync.WaitGroup{}
-	time.Sleep(time.Second)
-	go func() {
-		group.Add(1)
-		defer func() {
-			if r := recover(); r != nil {
-				group.Done()
-			}
-		}()
-		panic("panic")
-	}()
-	os.Stderr.WriteString("err")
-	group.Wait()
-	println("test")
-	panic("panic")
+func TestLogF(t *testing.T) {
+	DebugF("test %s", "DebugF")
+	InfoF("test %s", "InfoF")
+	WarnF("test %s", "WarnF")
+	ErrF("test %s", "ErrF")
 }
