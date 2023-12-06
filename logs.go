@@ -320,3 +320,17 @@ func ErrN(n int, val ...interface{}) {
 func Err(val ...interface{}) {
 	ErrN(0, val...)
 }
+func SetLevel(l int) {
+	switch l {
+	case DEBUG:
+		glg.Get().SetLevel(glg.DEBG)
+	case INFO:
+		glg.Get().SetLevel(glg.INFO)
+	case WARN:
+		glg.Get().SetLevel(glg.WARN)
+	case ERR:
+		glg.Get().SetLevel(glg.ERR)
+	default:
+		glg.Get().SetLevel(glg.INFO)
+	}
+}

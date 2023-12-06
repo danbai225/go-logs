@@ -48,6 +48,11 @@ func TestFlag(t *testing.T) {
 	flag = flag | ERR
 	println(flag & ERR)
 	println(flag & INFO)
+	SetLevel(INFO)
+	Debug("Debug")
+	Info("Info")
+	Warn("Warn")
+	Err("Err")
 }
 func TestLogF(t *testing.T) {
 	DebugF("test %s", "DebugF")
